@@ -24,7 +24,7 @@ class Clinical_model:
         # On tient seulement compte de 6 mois par-rapport au baseline
         df.drop(['id', 'age', 'sex', 'VA_2weeks', 'VA_3months', 'VA_12months'], inplace=True, axis=1)
 
-        # On élimine toutes les rangées où il manques des variables
+        # On élimine toutes les rangées où il manque des variables
         df.dropna(inplace=True)
 
         # On redéfinit les index pour qu'il n'y ait pas de saut d'index
@@ -53,7 +53,8 @@ class Clinical_model:
         1. Lit les données dans les fichiers appropriés
         2. Préformatte les données afin d'être fournies au modèle de régression
         3. Initialise le modèle de régression
-        :param chemin_donnees: string contenant les fichiers devant être lus
+        :param chemin_donnees: string contenant le répertoire des fichiers devant être lus.
+        (Doit finir par un /)
         """
 
         self.mode = "pretraitement"
@@ -104,7 +105,7 @@ class Clinical_model:
             self.validation['faux_pos'], self.validation['vrais_pos'], self.validation['seuils'] = sklearn.metrics.roc_curve(y_true=self.y_test, y_score=self.validation['scores'][:,1], pos_label=True)
             self.validation['auroc'] = sklearn.metrics.auc(self.validation['faux_pos'], self.validation['vrais_pos'])
             self.validation['confusion_matrix'] = sklearn.metrics.confusion_matrix(self.y_test, y_pred)
-
+            self.validation['coefficients'] = self.log_reg_model.coef_
             self.stats.append(self.validation)
 
             # On est prêt à recommencer
@@ -125,17 +126,20 @@ class Clinical_model:
             # On va formatter les séries pour l'entraînement et les tests
             self.y_train, self.X_train = Clinical_model.pre_traitement_donnees(self.df_train)
             self.y_test, self.X_test = Clinical_model.pre_traitement_donnees(self.df_test)
+
+
         else:
             raise RuntimeError("Tentative de réinitialisation des données")
 
     def reinitialiser (self):
         """
-        Après une exécution d'entrainement et test, repréparer les données afin de réentrainer et retester.
+        Après une exécution d'entrainement et test, repréparer les données et le modèle afin de réentrainer et retester.
         """
 
         if self.mode == "valide":
            self.mode = "pretraitement"
            self.initialiser_donnees()
+           self.log_reg_model = LogisticRegressionCV(cv=10)
            self.validation = {}
            self.mode = "entrainement"
         else:
@@ -144,24 +148,42 @@ class Clinical_model:
     def lire_aurocs(self):
         """
         Retourne une liste des AUROCS calculés lors des différentes exécutions.
-        :return:
+        :return: pd.Series liste des AUC pour chaque exécution du modèle
         """
         liste_aurocs = []
         for r in self.stats:
             liste_aurocs.append(r['auroc'])
         return pd.Series(liste_aurocs)
 
+    def lire_coefs(self):
+        """
+        Retourne la liste des coefficients de régression calculés à chaque exécution
+        :return: pd.Dataframe liste des listes des coefficients pour chaque exécution
+        """
+
+        liste_coef = []
+        for r in self.stats:
+            liste_coef.append(r['coefficients'])
+        return liste_coef
+
 if __name__ == "__main__":
 
     mod = Clinical_model("/Users/pascal/Desktop/Python/trou_maculaire/data/")
 
-    for i in range(10):
+    for i in range(20):
+        print(f"Run # {i}", )
         mod.entrainer()
         mod.tester()
         mod.reinitialiser()
 
     df_auroc = mod.lire_aurocs()
     print(df_auroc.to_string())
+    print(df_auroc.describe().to_string())
+
+    df_coefs = mod.lire_coefs()
+    print(df_coefs)
+    #print(df_auroc.describe().to_string())
+
 
 
 
