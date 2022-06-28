@@ -7,6 +7,8 @@ import sklearn.metrics
 from sklearn import metrics
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn import preprocessing as prep
+from sklearn.model_selection import KFold, StratifiedKFold
+
 
 class Clinical_model:
     """
@@ -44,6 +46,8 @@ class Clinical_model:
     y_test (Series): Objet contenant la variable dépendante de l'ensemble de test
 
     X_test (DataFrame): Objet contenant les variables indépendantes de l'ensemble de test
+
+    folds (Array): Liste de groupes d'index définissant les 5 folds d'une exécution
 
     Méthodes
     --------
@@ -105,101 +109,160 @@ class Clinical_model:
 
         return y, X_normal
 
-    def __init__(self, chemin_donnees):
+    def __init__(self, chemin_donnees, experience="base"):
         """
         Prépare les données et le modèle pour la régression logistique:
         1. Lit les données dans les fichiers appropriés
         2. Préformatte les données afin d'être fournies au modèle de régression
         3. Initialise le modèle de régression
+        :param experience:
         :param chemin_donnees: string contenant le répertoire des fichiers devant être lus.
         (Doit finir par un /)
         """
 
+        self.y_test = None
+        self.y_train = None
+        self.X_test = None
+        self.X_train = None
+        self.y = None
+        self.X = None
+
         self.mode = "pretraitement"
 
-        # Contiendra les résultats des tests pour l'exécution courante
-        self.validation = {}
-
-        #Servira à accumuler les résultats de tests pour des exécutions multiples
+        #Servira à accumuler les résultats de tests pour les 5 runs
         self.stats = []
 
-        # Lecture des fichiers et concaténation dans un unique dataframe: df_total
-        self.df_total = pd.read_csv(chemin_donnees + "clinical_data_train.csv", na_values='-9')
-        self.df_total = pd.concat([self.df_total, pd.read_csv(chemin_donnees + "clinical_data_val.csv", na_values='-9')], ignore_index=True)
-        self.df_total = pd.concat([self.df_total, pd.read_csv(chemin_donnees + "clinical_data_test.csv", na_values='-9')], ignore_index=True)
+        # Les données seront groupées en 5 folds qui seront cross-validés tour à tour
+        self.folds = None
 
-        self.initialiser_les_donnees()
+        # Les folds seront générés par ceci
+        self.df_groupes = None
+
+        self.df_train_val = pd.read_csv(chemin_donnees + "clinical_data_train.csv", na_values='-9')
+        self.df_train_val = pd.concat(
+            [self.df_train_val, pd.read_csv(chemin_donnees + "clinical_data_val.csv", na_values='-9')],
+            ignore_index=True)
+        self.df_test = pd.read_csv(chemin_donnees + "clinical_data_test.csv", na_values='-9')
+        self.df_total = pd.concat([self.df_train_val, self.df_test], ignore_index=True)
+
+        if experience == "base":
+            self.initialiser_les_donnees_pour_train_test()
+        elif experience == "crossvalidation":
+            self.initialiser_les_donnees_pour_crossval()
+        else:
+            raise RuntimeError("Type d'expérience non supporté")
 
         # Configuration du modèle de régression logistique: log_reg_model
         self.log_reg_model = LogisticRegressionCV(cv=10)
 
         self.mode = "entrainement"
 
-    def entrainer_le_modele(self):
+    def cross_validation(self):
         """
-        Si les données ont été prétraitées, on entraîne le modèle.
+        Si les données ont été prétraitées, on entraîne le modèle, ensuite on stocke les
+        statistiques de tests dans la structure stats.
         """
 
         if self.mode == "entrainement":
-            self.log_reg_model.fit(self.X_train, self.y_train)
-            self.mode = "validation"
+
+            # Séparer les folds
+            for train_index, test_index in self.df_groupes:
+                self.X_train, self.X_test = self.X.iloc[train_index, :], self.X.iloc[test_index, :]
+                self.y_train, self.y_test = self.y.iloc[train_index], self.y.iloc[test_index]
+
+                # Entraîner le modèle de régression logistique
+                self.log_reg_model.fit(self.X_train, self.y_train)
+                self.mode = "validation"
+
+                # Tester le modèle avec le fold réservé
+                self.tester_le_modele()
         else:
             raise RuntimeError("Tentative d'entrainer un modèle dont les données ne sont pas traitées.")
+
+    def entrainement_de_base(self):
+        if self.mode == "entrainement":
+            self.log_reg_model.fit(self.X_train, self.y_train)
+            self.mode = "validation"
+            self.tester_le_modele()
+
+
 
     def tester_le_modele(self):
         """
         Une fois le modèle entraîné, on utilise les données de test pour extraire les scores de validation standard du
-        modèle.
+        modèle.  Les résultats sont stockés dans l'objet stats.
         :return:
         """
+
+        resultats_tests = {}
 
         if self.mode == "validation":
 
             # On génère les probabilités prédites à partir des données test
             y_pred = pd.Series(self.log_reg_model.predict(self.X_test))
 
-            self.validation['exactitude'] = metrics.accuracy_score(self.y_test, y_pred)
-            self.validation['scores'] = self.log_reg_model.predict_proba(self.X_test)
-            self.validation['faux_pos'], self.validation['vrais_pos'], self.validation['seuils'] = sklearn.metrics.roc_curve(y_true=self.y_test, y_score=self.validation['scores'][:,1], pos_label=True)
-            self.validation['auroc'] = sklearn.metrics.auc(self.validation['faux_pos'], self.validation['vrais_pos'])
-            self.validation['confusion_matrix'] = sklearn.metrics.confusion_matrix(self.y_test, y_pred)
-            self.validation['coefficients'] = self.log_reg_model.coef_
-            self.stats.append(self.validation)
+            # Calculer les scores standards
+            resultats_tests['exactitude'] = metrics.accuracy_score(self.y_test, y_pred)
+            resultats_tests['scores'] = self.log_reg_model.predict_proba(self.X_test)
+            resultats_tests['faux_pos'], resultats_tests['vrais_pos'], resultats_tests['seuils'] = sklearn.metrics.roc_curve(y_true=self.y_test, y_score= resultats_tests['scores'][:, 1], pos_label=True)
+            resultats_tests['auroc'] = sklearn.metrics.auc(resultats_tests['faux_pos'], resultats_tests['vrais_pos'])
+            resultats_tests['confusion_matrix'] = sklearn.metrics.confusion_matrix(self.y_test, y_pred)
+            resultats_tests['coefficients'] = self.log_reg_model.coef_
+
+            # Stocker les résultats dans l'objet stats
+            self.stats.append(resultats_tests)
 
             # On est prêt à recommencer
             self.mode = "valide"
         else:
             raise RuntimeError("Le modèle n'a pas été entrainé.")
 
-    def initialiser_les_donnees(self):
+    def initialiser_les_donnees_pour_train_test(self):
+        if self.mode == "pretraitement":
+            self.y_train, self.X_train = Clinical_model.pre_traiter_les_donnees(self.df_train_val)
+            self.y_test, self.X_test = Clinical_model.pre_traiter_les_donnees(self.df_test)
+        else:
+            raise RuntimeError("Mode invalide dans initialiser_les_donnees_pour_train_test")
+
+
+    def initialiser_les_donnees_pour_crossval(self):
         """
-        Séparation des données en ensembles de test et d'entrainement.  Prétraitement des données.
+        Prétraiter les données: extraire les colonnes pertinentes et calculer la variable dépendante.
+        Séparer les variables dépendante et indépendante
+        Séparation des données en 5 folds
         """
 
         if self.mode == "pretraitement":
-            # On sépare au hasard un frame d'entraînement et un frame de test
-            self.df_train = self.df_total.copy(deep=True)
-            self.df_test = self.df_train.sample(frac=0.2).reset_index(drop=True)
 
-            # On va formatter les séries pour l'entraînement et les tests
-            self.y_train, self.X_train = Clinical_model.pre_traiter_les_donnees(self.df_train)
-            self.y_test, self.X_test = Clinical_model.pre_traiter_les_donnees(self.df_test)
+            # On va séparer les variables dépendante et indépendante
+            self.y, self.X = Clinical_model.pre_traiter_les_donnees(self.df_total)
 
+            # Initialiser nos 5 folds
+            self.folds = StratifiedKFold(n_splits=5, shuffle=True, random_state=None)
+            self.df_groupes = self.folds.split(self.X, self.y)
 
         else:
             raise RuntimeError("Tentative de réinitialisation des données")
 
-    def reinitialiser_le_modele (self):
+    def reinitialiser_le_modele(self, experience):
         """
         Après une exécution d'entrainement et test, repréparer les données et le modèle afin de réentrainer et retester.
+        :param experience:
         """
 
         if self.mode == "valide":
-           self.mode = "pretraitement"
-           self.initialiser_les_donnees()
-           self.log_reg_model = LogisticRegressionCV(cv=10)
-           self.validation = {}
-           self.mode = "entrainement"
+            self.mode = "pretraitement"
+
+            if experience == "crossvalidation":
+                self.initialiser_les_donnees_pour_crossval()
+            elif experience == "base":
+                self.initialiser_les_donnees_pour_train_test()
+            else:
+                raise RuntimeError("Type d'expérience non supporté")
+
+
+            self.log_reg_model = LogisticRegressionCV(cv=10)
+            self.mode = "entrainement"
         else:
             raise RuntimeError("Tentative de réinitialisation sans validation préablable")
 
@@ -224,23 +287,57 @@ class Clinical_model:
             liste_coef.append(r['coefficients'])
         return liste_coef
 
+    def afficher_courbe_ROC(self):
+
+        plt.close()
+        plt.figure()
+
+        # Bâtir les courbes pour chaque exécution
+        for i in range(len(self.stats)):
+            results = self.stats[i]
+            plt.plot(results["faux_pos"], results["vrais_pos"], color="grey", lw=1, label=f"Run {i}: AUROC = {results['auroc']:.2f}")
+
+        fpr_moyen, tpr_moyen = self.construire_courbe_ROC_moyenne ()
+        plt.plot(fpr_moyen, tpr_moyen, color="red", lw=2, linestyle = "dotted", label=f"Moyenne: AUROC = {self.lire_aurocs().mean()}")
+
+        # Bâtir la courbe de référence
+        plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
+
+        # Paramètres du graphe
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel("Faux positifs")
+        plt.ylabel("Vrais positifs")
+        plt.title("Courbe récepteur-opérateur")
+        plt.legend(loc="lower right")
+
+        plt.show()
+
+    def construire_courbe_ROC_moyenne(self):
+
+        fpr_moyen = np.unique(np.concatenate([np.array(self.stats[i]["faux_pos"]) for i in range(5)]))
+        tpr_moyen = np.zeros_like(fpr_moyen)
+
+        for i in range(5):
+            delta = np.interp(fpr_moyen, np.array(self.stats[i]["faux_pos"]), np.array(self.stats[i]["vrais_pos"]))
+            tpr_moyen += delta
+
+        tpr_moyen /= 5
+        return fpr_moyen, tpr_moyen
+
+
+
 if __name__ == "__main__":
 
-    mod = Clinical_model("/Users/pascal/Desktop/Python/trou_maculaire/data/")
+    mod = Clinical_model("/Users/pascal/Desktop/Python/trou_maculaire/data/", "crossvalidation")
 
-    for i in range(20):
-        print(f"Run # {i}", )
-        mod.entrainer_le_modele()
-        mod.tester_le_modele()
-        mod.reinitialiser_le_modele()
+    mod.cross_validation()
+    mod.afficher_courbe_ROC()
+    mod.reinitialiser_le_modele("base")
+    mod.entrainement_de_base()
+    mod.afficher_courbe_ROC()
 
-    df_auroc = mod.lire_aurocs()
-    print(df_auroc.to_string())
-    print(df_auroc.describe().to_string())
 
-    df_coefs = mod.lire_coefficients()
-    print(df_coefs)
-    #print(df_auroc.describe().to_string())
 
 
 
