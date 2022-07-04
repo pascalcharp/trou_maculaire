@@ -107,6 +107,7 @@ class Clinical_model:
         for variable in ['mh_duration', 'mh_size', 'VA_baseline']:
             X_normal[variable] = (X_normal[variable] - X_normal[variable].mean()) / X_normal[variable].std()
 
+
         return y, X_normal
 
     def __init__(self, chemin_donnees, experience="base"):
@@ -325,17 +326,22 @@ class Clinical_model:
         tpr_moyen /= 5
         return fpr_moyen, tpr_moyen
 
+    # (0, 0) (1, 2) (2, 6)
+    # (0, 1) (2, 4) (3, 7)
+    # (0, ) (1, ) (2, ) (3, )
+
 
 
 if __name__ == "__main__":
 
-    mod = Clinical_model("/Users/pascal/Desktop/Python/trou_maculaire/data/", "crossvalidation")
+    mod = Clinical_model("/Users/pascalcharpentier/PyCharmProjects/trou_maculaire_regression_logistique/data/", "crossvalidation")
+    mod2 = Clinical_model("/Users/pascalcharpentier/PyCharmProjects/trou_maculaire_regression_logistique/data/", "base")
 
     mod.cross_validation()
     mod.afficher_courbe_ROC()
-    mod.reinitialiser_le_modele("base")
-    mod.entrainement_de_base()
-    mod.afficher_courbe_ROC()
+
+    mod2.entrainement_de_base()
+    mod2.afficher_courbe_ROC()
 
 
 
