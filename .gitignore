@@ -2,4 +2,4 @@
 data/
 data/octs/
 venv/
-DL_model_config.jsonl
+DL_model_config.json
