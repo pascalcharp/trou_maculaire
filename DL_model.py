@@ -73,7 +73,7 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         self.data.replace(-9, np.nan, inplace=True)
         self.data.fillna(self.data.mean(), inplace=True)
 
-        # Définir la variable dépendante, les "labels"
+        # Définir la variable dépendante, les "labels": amélioration de plus de 15 sur 6 mois
         self.data['responder'] = (self.data['VA_6months'] - self.data['VA_baseline']) >= 15
 
         # Éliminer les colonnes restantes: il ne restera que la colonne 'responder'
