@@ -5,10 +5,11 @@ from PIL import Image
 import torchvision.transforms as transforms
 
 class DL_model_dataset(torch.utils.data.dataset.Dataset):
-    def __init__(self, data_directory="/home/chapas/trou_maculaire/data/oct_data", set="train"):
+    def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train"):
 
         input_filename = data_directory + "/clinical_data_" + set + ".csv"
         self.data_directory = data_directory
+        self.image_directory = data_directory + "/oct_data/" + set + "/octs/"
         self.set = set
 
         self.data = pd.read_csv(input_filename)
@@ -39,7 +40,7 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         # Retrouver les informations du patient
         record = self.labels[patient_idx]
         label = float(record['responder'])
-        image_file_name = self.data_directory + "/octs/" + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
+        image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
         image = Image.open(image_file_name).convert("RGB")
 
         # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
@@ -80,7 +81,7 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         self.data.drop(['VA_baseline', 'VA_6months'], inplace=True, axis=1)
 
 if __name__ == "__main__":
-    test_dataset = DL_model_dataset(data_directory="/Users/pascalcharpentier/PycharmProjects/trou_maculaire_regression_logistique/data", set="test")
+    test_dataset = DL_model_dataset(set="test")
     print(test_dataset.labels)
 
     label, image = test_dataset.__getitem__(12)
