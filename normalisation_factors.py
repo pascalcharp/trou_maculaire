@@ -41,7 +41,7 @@ for filename in os.listdir(image_directory):
 
         result_means.append(record)
 
-print(result_means)
+
 df = pd.DataFrame.from_records(result_means)
 
 print(df.describe())
