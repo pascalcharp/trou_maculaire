@@ -13,11 +13,16 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
 
         self.data = pd.read_csv(input_filename)
 
+        # Les labels sont stockés dans une liste de d'enregistrements.  Chaque enregistrement contient un champ 'id'
+        # qui est le numéro du patient, et correspond au numéro du fichier .tiff correspondant, et un champ 'responder'
+        # qui est True ou False et décrit la réponse clinique, qui est notre variable dépendante.
         self.get_labels_from_dataframe()
         self.labels = self.data.to_dict('records')
 
 
     def __len__(self):
+
+        # 2 car chaque label dans self.labels correspond à 2 scans: le scan horizontal et le scan vertical.
         return 2 * len(self.labels)
 
     def __getitem__(self, index):
@@ -31,12 +36,14 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
             patient_idx = (index - 1) // 2
             oct_direction = "V"
 
-        # Retirer les informations du patient
+        # Retrouver les informations du patient
         record = self.labels[patient_idx]
         label = float(record['responder'])
         image_file_name = self.data_directory + "/octs/" + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
         image = Image.open(image_file_name).convert("RGB")
 
+        # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
+        # Mathieu Godbout
         transform_list = [
             transforms.Resize((224, 224)),
             transforms.RandomHorizontalFlip(),
@@ -47,9 +54,9 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         first_transformation = transforms.Compose(transform_list)
         tensor = first_transformation(image)
 
+        # Normalisation des 3 canaux
         mean_tensor = torch.mean(tensor, (1, 2))
         mean_std = torch.std(tensor, (1, 2))
-
         final_transformation = transforms.Compose([transforms.Normalize(mean_tensor, mean_std, inplace=True)])
         final_transformation(tensor)
 
