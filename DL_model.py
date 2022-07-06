@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
+import json
 
 class DL_model_dataset(torch.utils.data.dataset.Dataset):
     def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train"):
@@ -81,7 +82,12 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         self.data.drop(['VA_baseline', 'VA_6months'], inplace=True, axis=1)
 
 if __name__ == "__main__":
-    test_dataset = DL_model_dataset(set="test")
+    with open("DL_model_config.json", "r") as fp:
+        cfg = json.load(fp)
+
+
+
+    test_dataset = DL_model_dataset(set=cfg["set"], data_directory=cfg["data_directory"])
     print(test_dataset.labels)
 
     label, image = test_dataset.__getitem__(12)
