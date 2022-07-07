@@ -1,9 +1,13 @@
 import torch
+import torch.nn as nn
 import pandas as pd
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
 import json
+
+normalisation_factors_means = [0.163549, 0.163544, 0.163547]
+normalisation_factors_std = [0.133186, 0.133183, 0.133186]
 
 class DL_model_dataset(torch.utils.data.dataset.Dataset):
     def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train"):
@@ -57,9 +61,8 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         tensor = first_transformation(image)
 
         # Normalisation des 3 canaux
-        mean_tensor = torch.mean(tensor, (1, 2))
-        mean_std = torch.std(tensor, (1, 2))
-        final_transformation = transforms.Compose([transforms.Normalize(mean_tensor, mean_std, inplace=True)])
+
+        final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
         final_transformation(tensor)
 
         return label, tensor
@@ -80,6 +83,47 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
 
         # Éliminer les colonnes restantes: il ne restera que la colonne 'responder'
         self.data.drop(['VA_baseline', 'VA_6months'], inplace=True, axis=1)
+
+class DL_model_CBR_tiny(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+
+        self.dropout = 0.0
+        self.feature_size = 256
+
+        self.conv = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=5, padding=2),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.Conv2d(64, 128, kernel_size=5, padding=2),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.Conv2d(128, 256, kernel_size=5, padding=2),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.Conv2d(256, 256, kernel_size=5, padding=2),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.ReLU(),
+        )
+        self.head = nn.Sequential(
+            nn.Dropout(self.dropout),
+            nn.Linear(self.feat_size, 1),
+        )
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.flatten = nn.Flatten()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.avgpool(x)
+        x = self.flatten(x)
+
+        return self.head(x)
 
 if __name__ == "__main__":
     with open("DL_model_config.json", "r") as fp:
