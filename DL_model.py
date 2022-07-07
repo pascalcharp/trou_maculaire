@@ -113,7 +113,7 @@ class DL_model_CBR_tiny(nn.Module):
         )
         self.head = nn.Sequential(
             nn.Dropout(self.dropout),
-            nn.Linear(self.feat_size, 1),
+            nn.Linear(self.feature_size, 1),
         )
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.flatten = nn.Flatten()
@@ -139,8 +139,6 @@ if __name__ == "__main__":
     print(image)
     print(image.shape)
 
-    label, image = test_dataset.__getitem__(13)
-    print(label)
-    print(image)
-    print(image.shape)
-
+    model = DL_model_CBR_tiny()
+    result = model.forward(image)
+    print(result)
