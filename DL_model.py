@@ -1,15 +1,19 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import pytorch_lightning as pl
 import pandas as pd
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
 import json
 
+from torch.utils.data import DataLoader
+
 normalisation_factors_means = [0.163549, 0.163544, 0.163547]
 normalisation_factors_std = [0.133186, 0.133183, 0.133186]
 
-class DL_model_dataset(torch.utils.data.dataset.Dataset):
+class DLM_dataset(torch.utils.data.dataset.Dataset):
     def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train"):
 
         input_filename = data_directory + "/clinical_data_" + set + ".csv"
@@ -44,7 +48,7 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
 
         # Retrouver les informations du patient
         record = self.labels[patient_idx]
-        label = float(record['responder'])
+        label = torch.as_tensor(float(record['responder']))
         image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
         image = Image.open(image_file_name).convert("RGB")
 
@@ -65,7 +69,7 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
         final_transformation(tensor)
 
-        return label, tensor
+        return  tensor, label
 
     def get_labels_from_dataframe(self):
 
@@ -84,7 +88,7 @@ class DL_model_dataset(torch.utils.data.dataset.Dataset):
         # Éliminer les colonnes restantes: il ne restera que la colonne 'responder'
         self.data.drop(['VA_baseline', 'VA_6months'], inplace=True, axis=1)
 
-class DL_model_CBR_tiny(nn.Module):
+class DLM_CBR_tiny(nn.Module):
 
     def __init__(self):
         super().__init__()
@@ -125,20 +129,66 @@ class DL_model_CBR_tiny(nn.Module):
 
         return self.head(x)
 
+class DLM_module(pl.LightningModule):
+    def __init__(self, model):
+        super(DLM_module, self).__init__()
+        self.model=model()
+
+    def training_step(self, batch, batch_idx):
+        X, y = batch
+        y_hat = self.model.forward(X)
+        loss = F.cross_entropy(y_hat, y)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        return loss
+
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=1.0e-4)
+        return optimizer
+
+    def validation_step(self, batch, batch_idx):
+        X, y = batch
+        y_hat = self.model.forward(X)
+        loss = F.cross_entropy(y_hat, y)
+        self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+
+    def test_step(self, batch, batch_idx):
+        X, y = batch
+        y_hat = self.model.forward(X)
+        loss = F.cross_entropy(y_hat, y)
+        self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+
+def main(data_directory):
+    # Données d'entraînement
+    train_dataset = DLM_dataset(data_directory=data_directory, set="train")
+    train_loader = DataLoader(train_dataset, batch_size=32)
+
+    # Données de validation
+    val_dataset = DLM_dataset(data_directory=data_directory, set="val")
+    val_loader = DataLoader(val_dataset, batch_size=len(val_dataset))
+
+    # Données de test
+    test_dataset = DLM_dataset(data_directory=data_directory, set="test")
+    test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
+
+    # Modèle de deep learning et module d'entraînement
+    CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
+    trainer = pl.Trainer()
+
+    # Entraînement
+    trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
+    # Test
+    trainer.test(model=CBR_Tiny, test_dataloaders=test_loader)
+
+
+
 if __name__ == "__main__":
+
     with open("DL_model_config.json", "r") as fp:
-        cfg = json.load(fp)
+        params = json.load(fp)
+
+    data_directory = params['data_directory']
+    main(data_directory=data_directory)
 
 
-
-    test_dataset = DL_model_dataset(set=cfg["set"], data_directory=cfg["data_directory"])
-    print(test_dataset.labels)
-
-    label, image = test_dataset.__getitem__(12)
-    print(label)
-    print(image)
-    print(image.shape)
-
-    model = DL_model_CBR_tiny()
-    result = model.forward(image)
-    print(result)
