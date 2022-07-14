@@ -138,25 +138,25 @@ class DLM_module(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
-        ts_loss = self.loss(y_hat, y)
+        ts_loss = self.loss(torch.squeeze(y_hat), y)
         self.log("train_loss", ts_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return ts_loss
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1.0e-4)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1.0e-3)
         return optimizer
 
     def validation_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
-        vs_loss = self.loss(y_hat, y)
+        vs_loss = self.loss(torch.squeeze(y_hat), y)
         self.log("validation_loss", vs_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
     def test_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
-        ts_loss = self.loss(y_hat, y)
+        ts_loss = self.loss(torch.squeeze(y_hat), y)
         self.log("test_loss", ts_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
 def main(data_directory, train_dataset_batch_size):
