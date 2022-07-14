@@ -158,10 +158,10 @@ class DLM_module(pl.LightningModule):
         loss = F.cross_entropy(y_hat, y)
         self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
-def main(data_directory):
+def main(data_directory, train_dataset_batch_size):
     # Données d'entraînement
     train_dataset = DLM_dataset(data_directory=data_directory, set="train")
-    train_loader = DataLoader(train_dataset, batch_size=32)
+    train_loader = DataLoader(train_dataset, batch_size=train_dataset_batch_size)
 
     # Données de validation
     val_dataset = DLM_dataset(data_directory=data_directory, set="val")
@@ -189,6 +189,7 @@ if __name__ == "__main__":
         params = json.load(fp)
 
     data_directory = params['data_directory']
-    main(data_directory=data_directory)
+    train_dataset_batch_size = params['train_dataset_batch_size']
+    main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size)
 
 
