@@ -133,13 +133,14 @@ class DLM_module(pl.LightningModule):
     def __init__(self, model):
         super(DLM_module, self).__init__()
         self.model=model()
+        self.loss = nn.MSELoss()
 
     def training_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
-        loss = F.cross_entropy(y_hat, y)
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        return loss
+        ts_loss = self.loss(y_hat, y)
+        self.log("train_loss", ts_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        return ts_loss
 
 
     def configure_optimizers(self):
@@ -149,31 +150,31 @@ class DLM_module(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
-        loss = F.cross_entropy(y_hat, y)
-        self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        vs_loss = self.loss(y_hat, y)
+        self.log("validation_loss", vs_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
     def test_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
-        loss = F.cross_entropy(y_hat, y)
-        self.log("test_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        ts_loss = self.loss(y_hat, y)
+        self.log("test_loss", ts_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
 def main(data_directory, train_dataset_batch_size):
     # Données d'entraînement
     train_dataset = DLM_dataset(data_directory=data_directory, set="train")
-    train_loader = DataLoader(train_dataset, batch_size=train_dataset_batch_size)
+    train_loader = DataLoader(train_dataset, batch_size=train_dataset_batch_size, num_workers=4)
 
     # Données de validation
     val_dataset = DLM_dataset(data_directory=data_directory, set="val")
-    val_loader = DataLoader(val_dataset, batch_size=len(val_dataset))
+    val_loader = DataLoader(val_dataset, batch_size=len(val_dataset), num_workers=4)
 
     # Données de test
     test_dataset = DLM_dataset(data_directory=data_directory, set="test")
-    test_loader = DataLoader(test_dataset, batch_size=len(test_dataset))
+    test_loader = DataLoader(test_dataset, batch_size=len(test_dataset), num_workers=4)
 
     # Modèle de deep learning et module d'entraînement
     CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
-    trainer = pl.Trainer()
+    trainer = pl.Trainer(accelerator="gpu", devices=1)
 
     # Entraînement
     trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
