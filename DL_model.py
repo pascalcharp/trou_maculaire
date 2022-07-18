@@ -174,7 +174,7 @@ def main(data_directory, train_dataset_batch_size, enable_progress_bar):
 
     # Modèle de deep learning et module d'entraînement
     CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
-    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar)
+    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar, log_every_n_steps=6, flush_logs_every_n_steps=6)
 
     # Entraînement
     trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
