@@ -10,8 +10,14 @@ import json
 
 from torch.utils.data import DataLoader
 
+
+
+
 normalisation_factors_means = [0.163549, 0.163544, 0.163547]
 normalisation_factors_std = [0.133186, 0.133183, 0.133186]
+
+
+
 
 class DLM_dataset(torch.utils.data.dataset.Dataset):
     def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train"):
@@ -88,6 +94,9 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
         # Éliminer les colonnes restantes: il ne restera que la colonne 'responder'
         self.data.drop(['VA_baseline', 'VA_6months'], inplace=True, axis=1)
 
+
+
+
 class DLM_CBR_tiny(nn.Module):
 
     def __init__(self):
@@ -129,6 +138,9 @@ class DLM_CBR_tiny(nn.Module):
 
         return self.head(x)
 
+
+
+
 class DLM_module(pl.LightningModule):
     def __init__(self, model):
         super(DLM_module, self).__init__()
@@ -159,6 +171,9 @@ class DLM_module(pl.LightningModule):
         ts_loss = self.loss(torch.squeeze(y_hat), y)
         self.log("test_loss", ts_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
+
+
+
 def main(data_directory, train_dataset_batch_size, enable_progress_bar):
     # Données d'entraînement
     train_dataset = DLM_dataset(data_directory=data_directory, set="train")
@@ -174,13 +189,17 @@ def main(data_directory, train_dataset_batch_size, enable_progress_bar):
 
     # Modèle de deep learning et module d'entraînement
     CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
-    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar, log_every_n_steps=6, flush_logs_every_n_steps=6)
+    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar, log_every_n_steps=6, flush_logs_every_n_steps=6, max_epochs=100)
 
     # Entraînement
     trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
     # Test
     trainer.test(model=CBR_Tiny, test_dataloaders=test_loader)
+
+
+
+
 
 
 
