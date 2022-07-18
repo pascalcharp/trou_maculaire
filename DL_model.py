@@ -159,7 +159,7 @@ class DLM_module(pl.LightningModule):
         ts_loss = self.loss(torch.squeeze(y_hat), y)
         self.log("test_loss", ts_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
-def main(data_directory, train_dataset_batch_size):
+def main(data_directory, train_dataset_batch_size, enable_progress_bar):
     # Données d'entraînement
     train_dataset = DLM_dataset(data_directory=data_directory, set="train")
     train_loader = DataLoader(train_dataset, batch_size=train_dataset_batch_size, num_workers=4)
@@ -174,7 +174,7 @@ def main(data_directory, train_dataset_batch_size):
 
     # Modèle de deep learning et module d'entraînement
     CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
-    trainer = pl.Trainer(enable_progress_bar=False)
+    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar)
 
     # Entraînement
     trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
@@ -191,6 +191,7 @@ if __name__ == "__main__":
 
     data_directory = params['data_directory']
     train_dataset_batch_size = params['train_dataset_batch_size']
-    main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size)
+    enable_progress_bar = params['enable_progress_bar']
+    main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size, enable_progress_bar=enable_progress_bar)
 
 
