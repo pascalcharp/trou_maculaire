@@ -195,7 +195,7 @@ def main(data_directory, train_dataset_batch_size, enable_progress_bar):
     trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
     # Test
-    trainer.test(model=CBR_Tiny, test_dataloaders=test_loader)
+    trainer.test(model=CBR_Tiny, dataloaders=test_loader)
 
 
 
