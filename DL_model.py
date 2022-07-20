@@ -154,6 +154,7 @@ class DLM_module(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
+        y_hat = torch.squeeze(y_hat)
         ts_loss = self.loss(y_hat, y)
         ts_accuracy = self.accuracy(y_hat, y)
         ts_auroc = self.auroc(y_hat, y)
@@ -170,6 +171,7 @@ class DLM_module(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
+        y_hat = torch.squeeze(y_hat)
         vs_loss = self.loss(y_hat, y)
         vs_accuracy = self.accuracy(y_hat, y)
         vs_auroc = self.auroc(y_hat, y)
@@ -181,6 +183,7 @@ class DLM_module(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         X, y = batch
         y_hat = self.model.forward(X)
+        y_hat = torch.squeeze(y_hat)
         ts_loss = self.loss(y_hat, y)
         ts_accuracy = self.accuracy(y_hat, y)
         ts_auroc = self.auroc(y_hat, y)
