@@ -57,7 +57,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
         record = self.labels[patient_idx]
         label = torch.as_tensor(float(record['responder']))
         image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
-        print("Fetching file: ", image_file_name)
+        # print("Fetching file: ", image_file_name)
         image = Image.open(image_file_name).convert("RGB")
 
         # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
