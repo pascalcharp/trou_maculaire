@@ -158,7 +158,7 @@ class DLM_module(pl.LightningModule):
         ts_accuracy = self.accuracy(y_hat, y)
         ts_auroc = self.auroc(y_hat, y)
         self.log("train_loss", ts_loss, on_epoch=True, logger=True)
-        self.log("train_accuracy", ts_accuracy, on_epoch=True, logger=True)
+        # self.log("train_accuracy", ts_accuracy, on_epoch=True, logger=True)
         self.log("train_auroc", ts_auroc, on_epoch=True, logger=True)
         return ts_loss
 
@@ -171,7 +171,7 @@ class DLM_module(pl.LightningModule):
         X, y = batch
         y_hat = self.model.forward(X)
         vs_loss = self.loss(torch.squeeze(y_hat), y)
-        vs_accuracy = self.accuracy(y_hat, y)
+        # vs_accuracy = self.accuracy(y_hat, y)
         vs_auroc = self.auroc(y_hat, y)
         self.log("validation_loss", vs_loss, on_epoch=True, logger=True)
         self.log("validation_accuracy", vs_accuracy, on_epoch=True, logger=True)
@@ -182,7 +182,7 @@ class DLM_module(pl.LightningModule):
         X, y = batch
         y_hat = self.model.forward(X)
         ts_loss = self.loss(torch.squeeze(y_hat), y)
-        ts_accuracy = self.accuracy(y_hat, y)
+        # ts_accuracy = self.accuracy(y_hat, y)
         ts_auroc = self.auroc(y_hat, y)
         self.log("test_loss", ts_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("test_accuracy", ts_accuracy, on_epoch=True, logger=True)
