@@ -217,7 +217,12 @@ def main(data_directory, train_dataset_batch_size, enable_progress_bar):
     trainer.test(model=CBR_Tiny, dataloaders=[train_loader, val_loader])
 
 
-
+def test_dataset(data_directory, set):
+    train_dataset = DLM_dataset(data_directory=data_directory, set=set)
+    for i in range(len(train_dataset)):
+        _, label = train_dataset.__getitem__(i)
+        print("Index: ", i, " Label: ", label)
+    print("Test complete")
 
 
 
@@ -228,8 +233,8 @@ if __name__ == "__main__":
         params = json.load(fp)
 
     data_directory = params['data_directory']
-    train_dataset_batch_size = params['train_dataset_batch_size']
-    enable_progress_bar = params['enable_progress_bar']
-    main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size, enable_progress_bar=enable_progress_bar)
-
-
+    # train_dataset_batch_size = params['train_dataset_batch_size']
+    # enable_progress_bar = params['enable_progress_bar']
+    # main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size, enable_progress_bar=enable_progress_bar)
+    #
+    test_dataset(data_directory=data_directory, set="train")
