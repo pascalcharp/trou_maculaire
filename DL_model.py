@@ -199,22 +199,22 @@ def main(data_directory, train_dataset_batch_size, enable_progress_bar):
 
     # Données de validation
     val_dataset = DLM_dataset(data_directory=data_directory, set="val")
-    val_loader = DataLoader(val_dataset, batch_size=len(val_dataset), num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=1, num_workers=4)
 
     # Données de test
     test_dataset = DLM_dataset(data_directory=data_directory, set="test")
-    test_loader = DataLoader(test_dataset, batch_size=len(test_dataset), num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=1, num_workers=4)
 
     # Modèle de deep learning et module d'entraînement
     CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
-    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar, log_every_n_steps=6, flush_logs_every_n_steps=6, max_epochs=500, accelerator='gpu', devices=1)
+    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar, log_every_n_steps=6, flush_logs_every_n_steps=6, max_epochs=1000, accelerator='gpu', devices=1)
 
     # Entraînement
     trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
     # Test
     trainer.test(model=CBR_Tiny, dataloaders=test_loader)
-    trainer.test(model=CBR_Tiny, dataloaders=[train_loader, val_loader])
+    # trainer.test(model=CBR_Tiny, dataloaders=[train_loader, val_loader])
 
 
 def test_dataset(data_directory, set):
@@ -233,8 +233,8 @@ if __name__ == "__main__":
         params = json.load(fp)
 
     data_directory = params['data_directory']
-    # train_dataset_batch_size = params['train_dataset_batch_size']
-    # enable_progress_bar = params['enable_progress_bar']
-    # main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size, enable_progress_bar=enable_progress_bar)
-    #
-    test_dataset(data_directory=data_directory, set="test")
+    train_dataset_batch_size = params['train_dataset_batch_size']
+    enable_progress_bar = params['enable_progress_bar']
+    main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size, enable_progress_bar=enable_progress_bar)
+
+    # test_dataset(data_directory=data_directory, set="test")
