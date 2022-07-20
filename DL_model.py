@@ -237,4 +237,4 @@ if __name__ == "__main__":
     # enable_progress_bar = params['enable_progress_bar']
     # main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size, enable_progress_bar=enable_progress_bar)
     #
-    test_dataset(data_directory=data_directory, set="val")
+    test_dataset(data_directory=data_directory, set="test")
