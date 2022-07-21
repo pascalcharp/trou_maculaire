@@ -55,7 +55,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
         # Retrouver les informations du patient
         record = self.labels[patient_idx]
-        label = torch.as_tensor(float(record['responder']))
+        label = torch.as_tensor(record['responder']).float().unsqueeze(1)
         image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
 
         try:
@@ -236,7 +236,7 @@ class DLM_trainer:
                     X, y = X.cuda(), y.cuda()
                 self.optimizer.zero_grad()
                 result = self.model(X)
-                loss = self.loss(torch.squeeze(result), y)
+                loss = self.loss(result, y)
                 loss.backward()
                 self.optimizer.step()
                 training_loss += loss.item()
@@ -255,7 +255,7 @@ class DLM_trainer:
                         if torch.cuda.is_available():
                             X, y = X.cuda(), y.cuda()
                         result = self.model(X)
-                        loss = self.loss(torch.squeeze(result), y)
+                        loss = self.loss(result, y)
                         validation_loss += loss.item()
 
                         if (self.validation_loss_target > validation_loss):
