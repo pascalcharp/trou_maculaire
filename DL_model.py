@@ -57,27 +57,35 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
         record = self.labels[patient_idx]
         label = torch.as_tensor(float(record['responder']))
         image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
-        # print("Fetching file: ", image_file_name)
-        image = Image.open(image_file_name).convert("RGB")
 
-        # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
-        # Mathieu Godbout
-        transform_list = [
-            transforms.Resize((224, 224)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(contrast=0.3, hue=0.3),
-            transforms.RandomAffine(0, translate=(0.2, 0.05)),
-            transforms.ToTensor()
-        ]
-        first_transformation = transforms.Compose(transform_list)
-        tensor = first_transformation(image)
+        try:
+            image = Image.open(image_file_name).convert("RGB")
 
-        # Normalisation des 3 canaux
+            # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
+            # Mathieu Godbout
+            transform_list = [
+                transforms.Resize((224, 224)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(contrast=0.3, hue=0.3),
+                transforms.RandomAffine(0, translate=(0.2, 0.05)),
+                transforms.ToTensor()
+            ]
+            first_transformation = transforms.Compose(transform_list)
+            tensor = first_transformation(image)
 
-        final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
-        final_transformation(tensor)
+            # Normalisation des 3 canaux
 
-        return  tensor, label
+            final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
+            final_transformation(tensor)
+
+            return  tensor, label
+
+        except:
+            print(f"Fichier image ne peut être récupéré: {image_file_name}")
+            exit(1)
+
+
+
 
     def get_labels_from_dataframe(self):
 
