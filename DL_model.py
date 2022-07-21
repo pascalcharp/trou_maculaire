@@ -190,6 +190,59 @@ class DLM_module(pl.LightningModule):
         return ts_loss
 
 
+class DLM_trainer:
+    def __init__(self, params):
+        self.model = DLM_CBR_tiny()
+        if torch.cuda.is_available():
+            self.model = self.model.cuda()
+        self.loss = nn.MSELoss()
+        self.validation_loss_target = 0.01
+
+        self.train_batch_size = 32
+        self.validation_batch_size = 1
+        self.test_batch_size = 1
+
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.0e-4)
+
+        self.training_dataset = DLM_dataset(params['data_directory'], set="train")
+        self.validation_dataset = DLM_dataset(params['data_directory'], set = "val")
+        self.test_dataset = DLM_dataset(params['data_directory'], set="test")
+
+        self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=4)
+        self.validation_loader = DataLoader(self.validation_dataset, batch_size=1, num_workers=4)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=1, num_workers=4)
+
+    def train(self, epochs=1000):
+        for epoch in range(epochs):
+            self.model.train()
+            training_loss = 0.0
+            for X, y in self.train_loader:
+                if torch.cuda.is_available():
+                    X, y = X.cuda(), y.cuda()
+                self.optimizer.zero_grad()
+                target = self.model(X)
+                loss = self.loss(target, y)
+                loss.backward()
+                self.optimizer.step()
+                training_loss += loss.item()
+
+            validation_loss = 0.0
+            self.model.eval()
+            for X, y in self.validation_loader:
+                if torch.cuda.is_available():
+                    X, y = X.cuda(), y.cuda()
+                target = self.model(X)
+                loss = self.loss(target, y)
+                validation_loss += loss.item()
+
+            print(f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss}")
+            if (self.validation_loss_target > validation_loss):
+                print("Perte en validation atteinte: sauvegarde du modèle")
+                torch.save(self.model.state_dict())
+
+
+
+
 
 
 def main(data_directory, train_dataset_batch_size, enable_progress_bar):
