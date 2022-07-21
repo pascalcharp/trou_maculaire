@@ -87,7 +87,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
             return  tensor, label
 
-        except:
+        except IOError:
             print(f"Fichier image ne peut être récupéré: {image_file_name}")
             exit(1)
 
@@ -223,9 +223,9 @@ class DLM_trainer:
         self.validation_dataset = DLM_dataset(directory, set = "val")
         self.test_dataset = DLM_dataset(directory, set="test")
 
-        self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=4, shuffle=True)
-        self.validation_loader = DataLoader(self.validation_dataset, batch_size=42, num_workers=4, shuffle=True)
-        self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=4, shuffle=True)
+        self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=0, shuffle=True)
+        self.validation_loader = DataLoader(self.validation_dataset, batch_size=42, num_workers=0, shuffle=True)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=0, shuffle=True)
 
     def train(self, epochs=1000):
         for epoch in range(epochs):
