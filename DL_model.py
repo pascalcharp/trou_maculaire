@@ -8,6 +8,7 @@ import torchmetrics
 from PIL import Image
 import torchvision.transforms as transforms
 import json
+import random
 
 from torch.utils.data import DataLoader
 
@@ -221,9 +222,9 @@ class DLM_trainer:
         self.validation_dataset = DLM_dataset(directory, set = "val")
         self.test_dataset = DLM_dataset(directory, set="test")
 
-        self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=4)
-        self.validation_loader = DataLoader(self.validation_dataset, batch_size=42, num_workers=4)
-        self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=4)
+        self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=4, shuffle=True)
+        self.validation_loader = DataLoader(self.validation_dataset, batch_size=42, num_workers=4, shuffle=True)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=4, shuffle=True)
 
     def train(self, epochs=1000):
         for epoch in range(epochs):
@@ -298,9 +299,26 @@ class DLM_trainer:
 #     trainer.test(model=CBR_Tiny, dataloaders=test_loader)
 #     # trainer.test(model=CBR_Tiny, dataloaders=[train_loader, val_loader])
 
+
+def make_deterministic(seed=42):
+    # PyTorch
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+    # Numpy
+    np.random.seed(seed)
+
+    # Built-in Python
+    random.seed(seed)
+
 def main(params):
+
+    make_deterministic()
     trainer = DLM_trainer(params['data_directory'])
     trainer.train(1000)
+
 
 
 def test_dataset(data_directory, set):
