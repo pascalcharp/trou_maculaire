@@ -65,19 +65,20 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
                 print(f"Label pour ce patient: ", record['responder'])
                 print(f"Fichier image lu: {image_file_name}")
 
-            image = Image.open(image_file_name).convert("RGB")
+            with Image.open(image_file_name) as image:
+                image.convert("RGB")
 
-            # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
-            # Mathieu Godbout
-            transform_list = [
-                transforms.Resize((224, 224)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(contrast=0.3, hue=0.3),
-                transforms.RandomAffine(0, translate=(0.2, 0.05)),
-                transforms.ToTensor()
-            ]
-            first_transformation = transforms.Compose(transform_list)
-            tensor = first_transformation(image)
+                # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
+                # Mathieu Godbout
+                transform_list = [
+                    transforms.Resize((224, 224)),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ColorJitter(contrast=0.3, hue=0.3),
+                    transforms.RandomAffine(0, translate=(0.2, 0.05)),
+                    transforms.ToTensor()
+                ]
+                first_transformation = transforms.Compose(transform_list)
+                tensor = first_transformation(image)
 
             # Normalisation des 3 canaux
 
