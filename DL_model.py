@@ -227,10 +227,11 @@ class DLM_trainer:
                 training_loss += loss.item()
 
 
-            validation_loss = 0.0
+
             training_loss = training_loss / len(self.train_loader)
 
             if epoch % 10 == 9:
+                validation_loss = 0.0
                 print (f"Epoch {epoch} : validation")
                 self.model.eval()
 
@@ -240,14 +241,16 @@ class DLM_trainer:
                     target = self.model(X)
                     loss = self.loss(target, y)
                     validation_loss += loss.item()
-
+                    if (self.validation_loss_target > validation_loss):
+                        print("Perte en validation atteinte: sauvegarde du modèle")
+                        # torch.save(self.model.state_dict())
 
                 validation_loss = validation_loss / len(self.validation_loader)
+                print(f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss}")
 
-            print(f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss}")
-            if (self.validation_loss_target > validation_loss):
-                print("Perte en validation atteinte: sauvegarde du modèle")
-                torch.save(self.model.state_dict())
+            else:
+                print(f"Epoch {epoch} $ Training loss $ {training_loss}")
+
 
 
 
