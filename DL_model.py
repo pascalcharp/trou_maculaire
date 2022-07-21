@@ -209,8 +209,8 @@ class DLM_trainer:
         self.test_dataset = DLM_dataset(params['data_directory'], set="test")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=4)
-        self.validation_loader = DataLoader(self.validation_dataset, batch_size=1, num_workers=4)
-        self.test_loader = DataLoader(self.test_dataset, batch_size=1, num_workers=4)
+        self.validation_loader = DataLoader(self.validation_dataset, batch_size=42, num_workers=4)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=4)
 
     def train(self, epochs=1000):
         for epoch in range(epochs):
@@ -226,14 +226,23 @@ class DLM_trainer:
                 self.optimizer.step()
                 training_loss += loss.item()
 
+
             validation_loss = 0.0
-            self.model.eval()
-            for X, y in self.validation_loader:
-                if torch.cuda.is_available():
-                    X, y = X.cuda(), y.cuda()
-                target = self.model(X)
-                loss = self.loss(target, y)
-                validation_loss += loss.item()
+            training_loss = training_loss / len(self.train_loader)
+
+            if epoch % 10 == 9:
+                print (f"Epoch {epoch} : validation")
+                self.model.eval()
+
+                for X, y in self.validation_loader:
+                    if torch.cuda.is_available():
+                        X, y = X.cuda(), y.cuda()
+                    target = self.model(X)
+                    loss = self.loss(target, y)
+                    validation_loss += loss.item()
+
+
+                validation_loss = validation_loss / len(self.validation_loader)
 
             print(f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss}")
             if (self.validation_loss_target > validation_loss):
