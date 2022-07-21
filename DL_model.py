@@ -56,7 +56,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
         # Retrouver les informations du patient
         record = self.labels[patient_idx]
-        label = torch.as_tensor(record['responder']).float().unsqueeze(1)
+        label = torch.as_tensor(record['responder']).float().unsqueeze(0)
         image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
 
         try:
