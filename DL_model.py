@@ -60,10 +60,6 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
         image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
 
         try:
-            if self.set == "val":
-                print(f"id patient = ", record['id'])
-                print(f"Label pour ce patient: ", record['responder'])
-                print(f"Fichier image lu: {image_file_name}")
 
             with Image.open(image_file_name) as image:
                 rgb_image = image.convert("RGB")
