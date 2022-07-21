@@ -59,6 +59,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
         image_file_name = self.image_directory + str(record['id']) + "_baseline_" + oct_direction + ".tiff"
 
         try:
+            # print(f"Fichier image lu: {image_file_name}")
             image = Image.open(image_file_name).convert("RGB")
 
             # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
