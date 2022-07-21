@@ -234,7 +234,7 @@ class DLM_trainer:
                 validation_loss = 0.0
                 print (f"Epoch {epoch} : validation")
                 self.model.eval()
-                with torch.no_grad:
+                with torch.no_grad():
 
                     for X, y in self.validation_loader:
                         if torch.cuda.is_available():
