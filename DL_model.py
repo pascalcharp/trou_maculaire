@@ -66,7 +66,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
                 print(f"Fichier image lu: {image_file_name}")
 
             with Image.open(image_file_name) as image:
-                image.convert("RGB")
+                rgb_image = image.convert("RGB")
 
                 # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
                 # Mathieu Godbout
@@ -78,12 +78,12 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
                     transforms.ToTensor()
                 ]
                 first_transformation = transforms.Compose(transform_list)
-                tensor = first_transformation(image)
+                tensor = first_transformation(rgb_image)
 
             # Normalisation des 3 canaux
 
-            # final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
-            # final_transformation(tensor)
+            final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
+            final_transformation(tensor)
 
             return  tensor, label
 
