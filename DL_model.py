@@ -262,9 +262,12 @@ class DLM_trainer:
                         result = self.model(X)
                         result = torch.sigmoid(result)
                         loss = self.loss(result, y)
-                        auroc = sklearn.metrics.roc_auc_score(y, result)
-                        F1 = sklearn.metrics.f1_score(y, result)
-                        accuracy = sklearn.metrics.accuracy_score(y, result)
+
+                        labels = y.cpu().numpy()
+                        probabilities = result.cpu().numpy()
+                        auroc = sklearn.metrics.roc_auc_score(labels, probabilities)
+                        F1 = sklearn.metrics.f1_score(labels, probabilities)
+                        accuracy = sklearn.metrics.accuracy_score(labels, probabilities)
 
 
 
