@@ -82,8 +82,8 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
             # Normalisation des 3 canaux
 
-            final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
-            final_transformation(tensor)
+            # final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
+            # final_transformation(tensor)
 
             return  tensor, label
 
