@@ -265,16 +265,17 @@ class DLM_trainer:
 
                         labels = y.cpu().numpy()
                         probabilities = result.cpu().numpy()
+                        # fpr, tpr, thr = metrics.roc_curve(y_true=labels, y_score=probabilities, pos_label=1.0)
                         auroc = sklearn.metrics.roc_auc_score(labels, probabilities)
-                        F1 = sklearn.metrics.f1_score(labels, probabilities)
-                        accuracy = sklearn.metrics.accuracy_score(labels, probabilities)
+                        # F1 = sklearn.metrics.f1_score(labels, probabilities)
+                        # accuracy = sklearn.metrics.accuracy_score(labels, probabilities)
 
 
 
                         validation_auroc += auroc
-                        validation_F1 += F1
+                        # validation_F1 += F1
                         validation_loss += loss.item()
-                        validation_accuracy += accuracy
+                        # validation_accuracy += accuracy
 
                         if (self.validation_loss_target > validation_loss):
                             print("Perte en validation atteinte: sauvegarde du modèle")
@@ -282,10 +283,10 @@ class DLM_trainer:
 
                 validation_loss = validation_loss / len(self.validation_loader)
                 validation_auroc = validation_auroc / len(self.validation_loader)
-                validation_F1 = validation_F1 / len(self.validation_loader)
-                validation_accuracy = validation_accuracy / len(self.validation_loader)
+                # validation_F1 = validation_F1 / len(self.validation_loader)
+                # validation_accuracy = validation_accuracy / len(self.validation_loader)
 
-                print(f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss} $ Validation auroc $ {validation_auroc} $ Validation acuuracy $ {validation_accuracy} $ Validation F1 $ {validation_F1}")
+                print(f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss} $ Validation auroc $ {validation_auroc}") # $ Validation acuuracy $ {validation_accuracy} $ Validation F1 $ {validation_F1}")
 
             else:
                 print(f"Epoch {epoch} $ Training loss $ {training_loss}")
