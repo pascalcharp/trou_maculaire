@@ -191,7 +191,7 @@ class DLM_module(pl.LightningModule):
 
 
 class DLM_trainer:
-    def __init__(self, params):
+    def __init__(self, directory):
         self.model = DLM_CBR_tiny()
         if torch.cuda.is_available():
             self.model = self.model.cuda()
@@ -204,9 +204,9 @@ class DLM_trainer:
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.0e-4)
 
-        self.training_dataset = DLM_dataset(params['data_directory'], set="train")
-        self.validation_dataset = DLM_dataset(params['data_directory'], set = "val")
-        self.test_dataset = DLM_dataset(params['data_directory'], set="test")
+        self.training_dataset = DLM_dataset(directory, set="train")
+        self.validation_dataset = DLM_dataset(directory, set = "val")
+        self.test_dataset = DLM_dataset(directory, set="test")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=4)
         self.validation_loader = DataLoader(self.validation_dataset, batch_size=42, num_workers=4)
@@ -254,29 +254,33 @@ class DLM_trainer:
 
 
 
-def main(data_directory, train_dataset_batch_size, enable_progress_bar):
-    # Données d'entraînement
-    train_dataset = DLM_dataset(data_directory=data_directory, set="train")
-    train_loader = DataLoader(train_dataset, batch_size=train_dataset_batch_size, num_workers=4)
+# def main(data_directory, train_dataset_batch_size, enable_progress_bar):
+#     # Données d'entraînement
+#     train_dataset = DLM_dataset(data_directory=data_directory, set="train")
+#     train_loader = DataLoader(train_dataset, batch_size=train_dataset_batch_size, num_workers=4)
+#
+#     # Données de validation
+#     val_dataset = DLM_dataset(data_directory=data_directory, set="val")
+#     val_loader = DataLoader(val_dataset, batch_size=1, num_workers=4)
+#
+#     # Données de test
+#     test_dataset = DLM_dataset(data_directory=data_directory, set="test")
+#     test_loader = DataLoader(test_dataset, batch_size=1, num_workers=4)
+#
+#     # Modèle de deep learning et module d'entraînement
+#     CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
+#     trainer = pl.Trainer(enable_progress_bar=enable_progress_bar, log_every_n_steps=6, flush_logs_every_n_steps=6, max_epochs=1000, accelerator='gpu', devices=1)
+#
+#     # Entraînement
+#     trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
+#
+#     # Test
+#     trainer.test(model=CBR_Tiny, dataloaders=test_loader)
+#     # trainer.test(model=CBR_Tiny, dataloaders=[train_loader, val_loader])
 
-    # Données de validation
-    val_dataset = DLM_dataset(data_directory=data_directory, set="val")
-    val_loader = DataLoader(val_dataset, batch_size=1, num_workers=4)
-
-    # Données de test
-    test_dataset = DLM_dataset(data_directory=data_directory, set="test")
-    test_loader = DataLoader(test_dataset, batch_size=1, num_workers=4)
-
-    # Modèle de deep learning et module d'entraînement
-    CBR_Tiny = DLM_module(model=DLM_CBR_tiny)
-    trainer = pl.Trainer(enable_progress_bar=enable_progress_bar, log_every_n_steps=6, flush_logs_every_n_steps=6, max_epochs=1000, accelerator='gpu', devices=1)
-
-    # Entraînement
-    trainer.fit(model=CBR_Tiny, train_dataloaders=train_loader, val_dataloaders=val_loader)
-
-    # Test
-    trainer.test(model=CBR_Tiny, dataloaders=test_loader)
-    # trainer.test(model=CBR_Tiny, dataloaders=[train_loader, val_loader])
+def main(params):
+    trainer = DLM_trainer(params['data_directory'])
+    trainer.train(100)
 
 
 def test_dataset(data_directory, set):
@@ -294,9 +298,6 @@ if __name__ == "__main__":
     with open("DL_model_config.json", "r") as fp:
         params = json.load(fp)
 
-    data_directory = params['data_directory']
-    train_dataset_batch_size = params['train_dataset_batch_size']
-    enable_progress_bar = params['enable_progress_bar']
-    main(data_directory=data_directory, train_dataset_batch_size=train_dataset_batch_size, enable_progress_bar=enable_progress_bar)
+    main(params)
 
-    # test_dataset(data_directory=data_directory, set="test")
+
