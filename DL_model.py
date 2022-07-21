@@ -214,8 +214,10 @@ class DLM_trainer:
 
     def train(self, epochs=1000):
         for epoch in range(epochs):
+
             self.model.train()
             training_loss = 0.0
+
             for X, y in self.train_loader:
                 if torch.cuda.is_available():
                     X, y = X.cuda(), y.cuda()
@@ -230,7 +232,7 @@ class DLM_trainer:
 
             training_loss = training_loss / len(self.train_loader)
 
-            if epoch % 10 == 9:
+            if epoch % 50 == 49:
                 validation_loss = 0.0
                 print (f"Epoch {epoch} : validation")
                 self.model.eval()
@@ -285,7 +287,7 @@ class DLM_trainer:
 
 def main(params):
     trainer = DLM_trainer(params['data_directory'])
-    trainer.train(100)
+    trainer.train(1000)
 
 
 def test_dataset(data_directory, set):
