@@ -237,6 +237,7 @@ class DLM_trainer:
                     X, y = X.cuda(), y.cuda()
                 self.optimizer.zero_grad()
                 result = self.model(X)
+                result = torch.sigmoid(result)
                 loss = self.loss(result, y)
                 loss.backward()
                 self.optimizer.step()
@@ -256,6 +257,7 @@ class DLM_trainer:
                         if torch.cuda.is_available():
                             X, y = X.cuda(), y.cuda()
                         result = self.model(X)
+                        result = torch.sigmoid(result)
                         loss = self.loss(result, y)
                         validation_loss += loss.item()
 
