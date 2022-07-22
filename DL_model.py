@@ -281,7 +281,7 @@ class DLM_trainer:
                     V_loss, V_labels, V_probabilities = self.perform_inference_on(self.validation_V_loader)
                     H_loss, H_labels, H_probabilities = self.perform_inference_on(self.validation_H_loader)
 
-                assert(V_labels == H_labels)
+                assert(np.array_equal(V_labels, H_labels))
                 probabilities = 0.5 * (V_probabilities + H_probabilities)
 
 
@@ -317,9 +317,9 @@ class DLM_trainer:
         print("Sauvegarde du modèle")
         torch.save(best_model, self.save_model_path)
 
-    def perform_inference_on(self, validation_loader):
+    def perform_inference_on(self, dataloader):
 
-        for X, y in validation_loader:
+        for X, y in dataloader:
 
             if torch.cuda.is_available():
                 X, y = X.cuda(), y.cuda()
