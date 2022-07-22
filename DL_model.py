@@ -236,8 +236,8 @@ class DLM_trainer:
         self.test_dataset = DLM_dataset(directory, set="test", direction="both")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=6, shuffle=True)
-        self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6, shuffle=True)
-        self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6, shuffle=True)
+        self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6, shuffle=False)
+        self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6, shuffle=False)
         self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=6, shuffle=True)
 
     def train(self, epochs=500):
@@ -280,9 +280,6 @@ class DLM_trainer:
 
                     V_loss, V_labels, V_probabilities = self.perform_inference_on(self.validation_V_loader)
                     H_loss, H_labels, H_probabilities = self.perform_inference_on(self.validation_H_loader)
-
-                print("H_labels: ", H_labels)
-                print("V_labels: ", V_labels)
 
                 assert(np.array_equal(V_labels, H_labels))
                 probabilities = 0.5 * (V_probabilities + H_probabilities)
