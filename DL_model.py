@@ -281,6 +281,9 @@ class DLM_trainer:
                     V_loss, V_labels, V_probabilities = self.perform_inference_on(self.validation_V_loader)
                     H_loss, H_labels, H_probabilities = self.perform_inference_on(self.validation_H_loader)
 
+                print("H_labels: ", H_labels)
+                print("V_labels: ", V_labels)
+
                 assert(np.array_equal(V_labels, H_labels))
                 probabilities = 0.5 * (V_probabilities + H_probabilities)
 
