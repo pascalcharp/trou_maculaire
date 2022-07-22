@@ -216,7 +216,7 @@ class DLM_module(pl.LightningModule):
 
 class DLM_trainer:
     def __init__(self, directory):
-        self.save_model_path = "/saved_models/model"
+        self.save_model_path = "saved_models/model"
 
         self.model = DLM_CBR_tiny()
         if torch.cuda.is_available():
