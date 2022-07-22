@@ -205,6 +205,8 @@ class DLM_module(pl.LightningModule):
 
 class DLM_trainer:
     def __init__(self, directory):
+        self.save_model_path = "/saved_models/model"
+
         self.model = DLM_CBR_tiny()
         if torch.cuda.is_available():
             self.model = self.model.cuda()
@@ -249,6 +251,10 @@ class DLM_trainer:
             if epoch % 50 == 49:
                 validation_loss = 0.0
                 validation_auroc = 0.0
+
+                max_auroc = 0.0
+                best_model = {}
+
                 validation_F1 = 0.0
                 validation_accuracy = 0.0
 
@@ -283,6 +289,10 @@ class DLM_trainer:
 
                 validation_loss = validation_loss / len(self.validation_loader)
                 validation_auroc = validation_auroc / len(self.validation_loader)
+                if (validation_auroc > max_auroc):
+                    max_auroc = validation_auroc
+                    best_model = self.model.state_dict()
+
                 # validation_F1 = validation_F1 / len(self.validation_loader)
                 # validation_accuracy = validation_accuracy / len(self.validation_loader)
 
@@ -290,6 +300,8 @@ class DLM_trainer:
 
             else:
                 print(f"Epoch {epoch} $ Training loss $ {training_loss}")
+
+        torch.save(best_model, self.save_model_path)
 
 
 
