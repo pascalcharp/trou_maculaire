@@ -24,12 +24,16 @@ normalisation_factors_std = [0.133186, 0.133183, 0.133186]
 
 
 class DLM_dataset(torch.utils.data.dataset.Dataset):
-    def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train"):
+    def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train", direction="both"):
 
         input_filename = data_directory + "/clinical_data_" + set + ".csv"
         self.data_directory = data_directory
         self.image_directory = data_directory + "/oct_data/" + set + "/octs/"
         self.set = set
+
+        if direction.upper() not in ["BOTH", "H", "V"]:
+            raise "Invalid direction option in dataset"
+        self.direction = direction.upper()
 
         self.data = pd.read_csv(input_filename)
 
@@ -43,18 +47,25 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
     def __len__(self):
 
         # 2 car chaque label dans self.labels correspond à 2 scans: le scan horizontal et le scan vertical.
-        return 2 * len(self.labels)
+        if self.direction == "BOTH":
+            return 2 * len(self.labels)
+        else:
+            return len(self.labels)
 
     def __getitem__(self, index):
 
-        # Il y a deux scans par patient
-        # index pair: scan horizontal, index impair: scan vertical
-        if index % 2 == 0:
-            patient_idx = index // 2
-            oct_direction = "H"
+        if self.direction == "BOTH":
+            # Il y a deux scans par patient
+            # index pair: scan horizontal, index impair: scan vertical
+            if index % 2 == 0:
+                patient_idx = index // 2
+                oct_direction = "H"
+            else:
+                patient_idx = (index - 1) // 2
+                oct_direction = "V"
         else:
-            patient_idx = (index - 1) // 2
-            oct_direction = "V"
+            patient_idx = index
+            oct_direction = self.direction
 
         # Retrouver les informations du patient
         record = self.labels[patient_idx]
@@ -219,9 +230,9 @@ class DLM_trainer:
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.0e-4)
 
-        self.training_dataset = DLM_dataset(directory, set="train")
-        self.validation_dataset = DLM_dataset(directory, set = "val")
-        self.test_dataset = DLM_dataset(directory, set="test")
+        self.training_dataset = DLM_dataset(directory, set="train", direction="both")
+        self.validation_dataset = DLM_dataset(directory, set = "val", direction="both")
+        self.test_dataset = DLM_dataset(directory, set="test", direction="both")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=6, shuffle=True)
         self.validation_loader = DataLoader(self.validation_dataset, batch_size=42, num_workers=6, shuffle=True)
@@ -241,9 +252,9 @@ class DLM_trainer:
                 if torch.cuda.is_available():
                     X, y = X.cuda(), y.cuda()
                 self.optimizer.zero_grad()
-                result = self.model(X)
-                result = torch.sigmoid(result)
-                loss = self.loss(result, y)
+                logits = self.model(X)
+                pred_probab = torch.sigmoid(logits)
+                loss = self.loss(pred_probab, y)
                 loss.backward()
                 self.optimizer.step()
                 training_loss += loss.item()
@@ -268,12 +279,12 @@ class DLM_trainer:
                     for X, y in self.validation_loader:
                         if torch.cuda.is_available():
                             X, y = X.cuda(), y.cuda()
-                        result = self.model(X)
-                        result = torch.sigmoid(result)
-                        loss = self.loss(result, y)
+                        logits = self.model(X)
+                        pred_probab = torch.sigmoid(logits)
+                        loss = self.loss(pred_probab, y)
 
                         labels = y.cpu().numpy()
-                        probabilities = result.cpu().numpy()
+                        probabilities = pred_probab.cpu().numpy()
                         # fpr, tpr, thr = metrics.roc_curve(y_true=labels, y_score=probabilities, pos_label=1.0)
                         auroc = sklearn.metrics.roc_auc_score(labels, probabilities)
                         # F1 = sklearn.metrics.f1_score(labels, probabilities)
@@ -286,9 +297,7 @@ class DLM_trainer:
                         validation_loss += loss.item()
                         # validation_accuracy += accuracy
 
-                        if (self.validation_loss_target > validation_loss):
-                            print("Perte en validation atteinte: sauvegarde du modèle")
-                            # torch.save(self.model.state_dict())
+
 
                 validation_loss = validation_loss / len(self.validation_loader)
                 validation_auroc = validation_auroc / len(self.validation_loader)
