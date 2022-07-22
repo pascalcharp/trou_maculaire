@@ -118,7 +118,7 @@ class DLM_CBR_tiny(nn.Module):
         super().__init__()
 
         self.dropout = 0.0
-        self.feature_size = 256
+        self.feature_size = 512
 
         self.conv = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=5, padding=2),
@@ -133,8 +133,8 @@ class DLM_CBR_tiny(nn.Module):
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.MaxPool2d(3, stride=2, padding=1),
-            nn.Conv2d(256, 256, kernel_size=5, padding=2),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(256, 512, kernel_size=5, padding=2),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.MaxPool2d(3, stride=2, padding=1),
             nn.ReLU(),
