@@ -177,7 +177,7 @@ class DLM_module(pl.LightningModule):
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1.0e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1.0e-4)
         return optimizer
 
     def validation_step(self, batch, batch_idx):
