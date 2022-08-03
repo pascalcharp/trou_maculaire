@@ -1,12 +1,11 @@
 import torch
 import pandas as pd
-import numpy as np
 import json
 import os
 from PIL import Image
 import torchvision.transforms as transforms
 
-with open("DL_model_config.json", "r") as fp:
+with open("../config/DL_model_config.json", "r") as fp:
     params = json.load(fp)
 
 image_directory = params["data_directory"] + "/oct_data/" + params["set"] + "/octs"
