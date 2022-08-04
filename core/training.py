@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 
 from core import models as cmd
 from core import datasets as cds
+from core import metrics as cmet
 
 class sham_trainer:
     def __init__(self):
@@ -51,6 +52,10 @@ class sham_trainer:
                 self.model.eval()
                 validation_loss = 0.0
                 validation_auroc = 0.0
+                validation_f1 = 0.0
+                validation_accuracy = 0.0
+                validation_sensitivity = 0.0
+                validation_specificity = 0.0
 
                 with torch.no_grad():
                     for X, y in self.validation_loader:
@@ -63,21 +68,28 @@ class sham_trainer:
                         y = y.cpu().numpy()
                         predicted_probabilities = predicted_probabilities.cpu().numpy()
 
-                        validation_batch_auroc = sklearn.metrics.roc_auc_score(y, predicted_probabilities)
-
-
+                        validation_metrics = cmet.get_metrics_from_prediction(y, predicted_probabilities)
                         validation_loss += validation_batch_loss.item()
-                        validation_auroc += validation_batch_auroc
+
+                        validation_auroc += validation_metrics["auroc"]
+                        validation_f1 += validation_metrics["f1"]
+                        validation_accuracy += validation_metrics["accuracy"]
+                        validation_sensitivity += validation_metrics["sensitivity"]
+                        validation_specificity += validation_metrics["specificity"]
 
                     validation_auroc /= len(self.validation_loader)
                     validation_loss /= len(self.validation_loader)
+                    validation_f1 /= len(self.validation_loader)
+                    validation_accuracy /= len(self.validation_loader)
+                    validation_sensitivity /= len(self.validation_loader)
+                    validation_specificity /= len(self.validation_loader)
 
                 if validation_auroc > max_auroc:
                     max_auroc = validation_auroc
                     best_model = self.model.state_dict()
 
                 print(
-                    f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss} $ Validation auroc $ {validation_auroc}")  # $ Validation acuuracy $ {validation_accuracy} $ Validation F1 $ {validation_F1}")
+                    f"Epoch {epoch} $ Training loss $ {training_loss} \n Validation loss $ {validation_loss} \n Validation auroc $ {validation_auroc}\n  Validation accuracy $ {validation_accuracy}\n Validation F1 $ {validation_f1}")
 
             else:
                 print(f"Epoch {epoch} $ Training loss $ {training_loss}")
@@ -139,9 +151,6 @@ class DLM_trainer:
             if epoch % 50 == 49:
                 validation_loss = 0.0
                 validation_auroc = 0.0
-
-
-
                 validation_F1 = 0.0
                 validation_accuracy = 0.0
 
@@ -154,32 +163,23 @@ class DLM_trainer:
 
                 assert(np.array_equal(V_labels, H_labels))
                 probabilities = 0.5 * (V_probabilities + H_probabilities)
+                validation_metrics = cmet.get_metrics_from_prediction(V_labels, probabilities)
 
-
-
-                auroc = sklearn.metrics.roc_auc_score(V_labels, probabilities)
-                # F1 = sklearn.metrics.f1_score(labels, probabilities)
-                # accuracy = sklearn.metrics.accuracy_score(labels, probabilities)
-                # fpr, tpr, thr = metrics.roc_curve(y_true=labels, y_score=probabilities, pos_label=1.0)
-
-
-                validation_auroc += auroc
-                # validation_F1 += F1
+                validation_auroc += validation_metrics["auroc"]
+                validation_F1 += validation_metrics["f1"]
                 validation_loss += 0.5 * (V_loss + H_loss)
-                # validation_accuracy += accuracy
-
-
+                validation_accuracy += validation_metrics["accuracy"]
 
                 validation_loss = validation_loss / len(self.validation_V_loader)
                 validation_auroc = validation_auroc / len(self.validation_V_loader)
+                validation_F1 /= len(self.validation_V_loader)
+                validation_accuracy /= len(self.validation_V_loader)
+
                 if (validation_auroc > max_auroc):
                     max_auroc = validation_auroc
                     best_model = self.model.state_dict()
 
-                # validation_F1 = validation_F1 / len(self.validation_loader)
-                # validation_accuracy = validation_accuracy / len(self.validation_loader)
-
-                print(f"Epoch {epoch} $ Training loss $ {training_loss} $ Validation loss $ {validation_loss} $ Validation auroc $ {validation_auroc}") # $ Validation acuuracy $ {validation_accuracy} $ Validation F1 $ {validation_F1}")
+                print(f"Epoch {epoch} $ Training loss $ {training_loss} \n Validation loss $ {validation_loss} \n Validation auroc $ {validation_auroc}\n  Validation accuracy $ {validation_accuracy}\n Validation F1 $ {validation_F1}")
 
             else:
                 print(f"Epoch {epoch} $ Training loss $ {training_loss}")

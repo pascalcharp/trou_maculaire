@@ -197,21 +197,6 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
         # Éliminer les colonnes restantes: il ne restera que la colonne 'responder'
         self.data.drop(['VA_baseline', 'VA_6months'], inplace=True, axis=1)
 
-if __name__=="__main__":
-
-    mydata = sham_dataset(cardinal=32, image_directory="/Users/pascal/Desktop/Python/trou_maculaire/data/sham_data/")
-    figure = plt.figure(figsize=(8, 8))
-    cols, rows = 3, 3
-    for i in range(1, cols * rows + 1):
-        sample_idx = torch.randint(len(mydata), size=(1,)).item()
-        img, label = mydata[sample_idx]
-        figure.add_subplot(rows, cols, i)
-        plt.title(str(label.item()))
-        plt.axis("off")
-        tensor_to_PIL = transforms.ToPILImage()
-        image = tensor_to_PIL(img)
-        plt.imshow(image, cmap="gray")
-        plt.show()
 
 
 
