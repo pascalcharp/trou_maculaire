@@ -12,6 +12,11 @@ normalisation_factors_std = [0.133186, 0.133183, 0.133186]
 
 
 
+class sham_dataset(torch.utils.data.dataset.Dataset):
+    pass
+
+
+
 class DLM_dataset(torch.utils.data.dataset.Dataset):
     def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train", direction="both"):
 
