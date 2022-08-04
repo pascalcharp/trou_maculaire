@@ -15,9 +15,11 @@ normalisation_factors_std = [0.133186, 0.133183, 0.133186]
 
 
 class sham_dataset(torch.utils.data.dataset.Dataset):
-    """Faux dataset servant à la validation grossière de nos modèles de deep learning.  Il retourne tout simplement
+    """
+    Faux dataset servant à la validation grossière de nos modèles de deep learning.  Il retourne tout simplement
     sur un index pair: une image 224X224 noire avec le label 0, et sur un index impair, une image 224X224 blanche avec
-    le label 1.  Le classificateur devrait apprendre à reconnaître les images blanches."""
+    le label 1.  Le classificateur devrait apprendre à reconnaître les images blanches.
+    """
 
     def __init__(self, cardinal=32, image_directory=""):
         """
@@ -34,8 +36,8 @@ class sham_dataset(torch.utils.data.dataset.Dataset):
         self.black_rgb_image = self.read_tiff_image_into_tensor(black_image_filename)
         self.white_rgb_image = self.read_tiff_image_into_tensor(white_image_filename)
 
-        self.black_label = torch.as_tensor(1.0)
-        self.white_label = torch.as_tensor(0.0)
+        self.black_label = torch.as_tensor(1.0).unsqueeze(0)
+        self.white_label = torch.as_tensor(0.0).unsqueeze(0)
 
 
 

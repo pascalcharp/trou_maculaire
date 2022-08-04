@@ -37,7 +37,7 @@ class sham_trainer:
                     X, y = X.cuda(), y.cuda()
                 self.optimizer.zero_grad()
                 logits = self.model(X)
-                pred_probab = torch.sigmoid(logits)
+                pred_probab = torch.sigmoid(logits).squeeze()
                 loss = self.loss(pred_probab, y)
                 loss.backward()
                 self.optimizer.step()
