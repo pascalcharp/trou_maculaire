@@ -36,8 +36,8 @@ class sham_dataset(torch.utils.data.dataset.Dataset):
         self.black_rgb_image = self.read_tiff_image_into_tensor(black_image_filename)
         self.white_rgb_image = self.read_tiff_image_into_tensor(white_image_filename)
 
-        self.black_label = torch.as_tensor(1.0).unsqueeze(0)
-        self.white_label = torch.as_tensor(0.0).unsqueeze(0)
+        self.black_label = torch.as_tensor(1.0)
+        self.white_label = torch.as_tensor(0.0)
 
 
 

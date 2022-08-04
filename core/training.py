@@ -17,8 +17,8 @@ class sham_trainer:
         self.loss = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.0e-4)
 
-        self.training_dataset = cds.sham_dataset(cardinal=32, image_directory="/Users/pascal/Desktop/Python/trou_maculaire/data/sham_data/")
-        self.validation_dataset = cds.sham_dataset(cardinal=8, image_directory="/Users/pascal/Desktop/Python/trou_maculaire/data/sham_data/")
+        self.training_dataset = cds.sham_dataset(cardinal=32, image_directory="/Users/pascalcharpentier/PycharmProjects/trou_maculaire_regression_logistique/data/sham_data/")
+        self.validation_dataset = cds.sham_dataset(cardinal=8, image_directory="/Users/pascalcharpentier/PycharmProjects/trou_maculaire_regression_logistique/data/sham_data/")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=4, shuffle=True)
         self.validation_loader = DataLoader(self.validation_dataset, batch_size=8, shuffle=True)
@@ -57,7 +57,7 @@ class sham_trainer:
                         if torch.cuda.is_available():
                             X, y = X.cuda(), y.cuda()
                         predicted_logits = self.model(X)
-                        predicted_probabilities = torch.sigmoid(predicted_logits)
+                        predicted_probabilities = torch.sigmoid(predicted_logits).squeeze()
                         validation_batch_loss = self.loss(predicted_probabilities, y)
 
                         y = y.cpu().numpy()
