@@ -6,8 +6,11 @@ import sys
 
 sys.path.append("..")
 
-from core import training as ctr
-from core import datasets as cds
+#from .. import core.training as ctr
+#from .. import core.datasets as cds
+
+from .. import core
+
 
 
 def make_deterministic(seed=42):
@@ -26,13 +29,13 @@ def make_deterministic(seed=42):
 def main(params):
 
     make_deterministic()
-    trainer = ctr.DLM_trainer(params['data_directory'])
+    trainer = core.training.DLM_trainer(params['data_directory'])
     trainer.train(1000)
 
 
 
 def test_dataset(data_directory, set):
-    train_dataset = cds.DLM_dataset(data_directory=data_directory, set=set)
+    train_dataset = core.datasets.DLM_dataset(data_directory=data_directory, set=set)
     for i in range(len(train_dataset)):
         _, label = train_dataset.__getitem__(i)
         print("Index: ", i, " Label: ", label)
