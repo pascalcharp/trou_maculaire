@@ -46,7 +46,7 @@ def test_dataset(data_directory, set):
 
 if __name__ == "__main__":
 
-    with open("config/DL_model_config.json", "r") as fp:
+    with open("../config/DL_model_config.json", "r") as fp:
         params = json.load(fp)
 
     main(params)
