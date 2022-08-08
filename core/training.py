@@ -119,8 +119,8 @@ class DLM_trainer:
         self.test_dataset = cds.DLM_dataset(directory, set="test", direction="both", transforms_mode="none")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=6, shuffle=True)
-        self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6, shuffle=False)
-        self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6, shuffle=False)
+        self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6, shuffle=True)
+        self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6, shuffle=True)
         self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=6, shuffle=True)
 
     def train(self, epochs=500):
