@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 
 
-normalisation_factors_means = [0.163549, 0.163544, 0.163547]
-normalisation_factors_std = [0.133186, 0.133183, 0.133186]
+normalisation_factors_means = [0.1854, 0.1854, 0.1854] #[0.163549, 0.163544, 0.163547]
+normalisation_factors_std = [0.1137, 0.1137, 0.1137] #[0.133186, 0.133183, 0.133186]
 
 
 

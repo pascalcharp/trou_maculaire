@@ -113,10 +113,10 @@ class DLM_trainer:
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.0e-4)
 
-        self.training_dataset = cds.DLM_dataset(directory, set="train", direction="both")
-        self.validation_H_dataset = cds.DLM_dataset(directory, set = "val", direction="H")
-        self.validation_V_dataset = cds.DLM_dataset(directory, set="val", direction="V")
-        self.test_dataset = cds.DLM_dataset(directory, set="test", direction="both")
+        self.training_dataset = cds.DLM_dataset(directory, set="train", direction="both", transforms_mode="all")
+        self.validation_H_dataset = cds.DLM_dataset(directory, set = "val", direction="H", transforms_mode="none")
+        self.validation_V_dataset = cds.DLM_dataset(directory, set="val", direction="V", transforms_mode="none")
+        self.test_dataset = cds.DLM_dataset(directory, set="test", direction="both", transforms_mode="none")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=6, shuffle=True)
         self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6, shuffle=False)
