@@ -157,10 +157,11 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
                 # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
                 # Mathieu Godbout
                 transform_list = [
+
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ColorJitter(contrast=0.3, hue=0.3),
+                    transforms.RandomAffine(0, translate=(0.2, 0.05)),
                     transforms.Resize((224, 224)),
-                    #transforms.RandomHorizontalFlip(),
-                    #transforms.ColorJitter(contrast=0.3, hue=0.3),
-                    #transforms.RandomAffine(0, translate=(0.2, 0.05)),
                     transforms.ToTensor()
                 ]
                 first_transformation = transforms.Compose(transform_list)
