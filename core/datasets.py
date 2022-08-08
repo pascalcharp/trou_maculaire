@@ -101,7 +101,7 @@ class sham_dataset(torch.utils.data.dataset.Dataset):
 
 
 class DLM_dataset(torch.utils.data.dataset.Dataset):
-    def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train", direction="both"):
+    def __init__(self, data_directory="/home/chapas/trou_maculaire/data", set="train", direction="both", transforms_mode="none"):
 
         input_filename = data_directory + "/clinical_data_" + set + ".csv"
         self.data_directory = data_directory
@@ -119,6 +119,9 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
         # qui est True ou False et décrit la réponse clinique, qui est notre variable dépendante.
         self.get_labels_from_dataframe()
         self.labels = self.data.to_dict('records')
+
+        self.transforms = None
+        self.set_transforms(transforms_mode)
 
 
     def __len__(self):
@@ -154,18 +157,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
             with Image.open(image_file_name) as image:
                 rgb_image = image.convert("RGB")
 
-                # Augmentation des données.  Ces transformations correspondent au niveau 'medium' dans le programme de
-                # Mathieu Godbout
-                transform_list = [
-
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ColorJitter(contrast=0.3, hue=0.3),
-                    #transforms.RandomAffine(0, translate=(0.2, 0.05)),
-                    transforms.Resize((224, 224)),
-                    transforms.ToTensor()
-                ]
-                first_transformation = transforms.Compose(transform_list)
-                tensor = first_transformation(rgb_image)
+                tensor = self.transforms(rgb_image)
 
             # Normalisation des 3 canaux
 
@@ -197,6 +189,25 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
         # Éliminer les colonnes restantes: il ne restera que la colonne 'responder'
         self.data.drop(['VA_baseline', 'VA_6months'], inplace=True, axis=1)
+
+
+    def set_transforms(self, mode):
+        if mode.upper() == "NONE":
+            transform_list = [transforms.ToTensor()]
+
+        elif mode.upper() == "ALL":
+            transform_list = [
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(contrast=0.3, hue=0.3),
+                #transforms.RandomAffine(0, translate=(0.2, 0.05)),
+                transforms.Resize((224, 224)),
+                transforms.ToTensor()
+            ]
+
+        else:
+            raise "Mode invalide dans set_transforms"
+
+        self.transforms = transforms.Compose(transform_list)
 
 
 
