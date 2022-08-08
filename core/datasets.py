@@ -160,7 +160,7 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
                     transforms.RandomHorizontalFlip(),
                     transforms.ColorJitter(contrast=0.3, hue=0.3),
-                    transforms.RandomAffine(0, translate=(0.2, 0.05)),
+                    #transforms.RandomAffine(0, translate=(0.2, 0.05)),
                     transforms.Resize((224, 224)),
                     transforms.ToTensor()
                 ]
