@@ -4,7 +4,7 @@ import torch
 import torchvision.transforms as transforms
 
 
-mydata = cds.DLM_dataset(data_directory="/Users/pascalcharpentier/PycharmProjects/trou_maculaire_regression_logistique/data", direction="both", set="test")
+mydata = cds.DLM_dataset(data_directory="/Users/pascalcharpentier/PycharmProjects/trou_maculaire_regression_logistique/data", direction="both", set="test", transforms_mode="all")
 figure = plt.figure(figsize=(8, 8))
 cols, rows = 2, 2
 listindex = [0, 1, 12, 13]

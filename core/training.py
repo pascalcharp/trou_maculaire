@@ -114,11 +114,13 @@ class DLM_trainer:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.0e-4)
 
         self.training_dataset = cds.DLM_dataset(directory, set="train", direction="both", transforms_mode="all")
+        self.training_dataset_without_transforms = cds.DLM_dataset(directory, set="train", direction="both", transforms_mode="none")
         self.validation_H_dataset = cds.DLM_dataset(directory, set = "val", direction="H", transforms_mode="none")
         self.validation_V_dataset = cds.DLM_dataset(directory, set="val", direction="V", transforms_mode="none")
         self.test_dataset = cds.DLM_dataset(directory, set="test", direction="both", transforms_mode="none")
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=6, shuffle=True)
+        self.train_loader_without_transforms = DataLoader(self.training_dataset_without_transforms, batch_size=32, num_workers=6, shuffle=True)
         self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6, shuffle=True)
         self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6, shuffle=True)
         self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=6, shuffle=True)
@@ -160,10 +162,12 @@ class DLM_trainer:
 
                     V_loss, V_labels, V_probabilities = self.perform_inference_on(self.validation_V_loader)
                     H_loss, H_labels, H_probabilities = self.perform_inference_on(self.validation_H_loader)
+                    T_loss, T_labels, T_probabilities = self.perform_inference_on(self.train_loader_without_transforms)
 
                 assert(np.array_equal(V_labels, H_labels))
                 probabilities = 0.5 * (V_probabilities + H_probabilities)
                 validation_metrics = cmet.get_metrics_from_prediction(V_labels, probabilities)
+                training_metrics = cmet.get_metrics_from_prediction(T_labels, T_probabilities)
 
                 validation_auroc += validation_metrics["auroc"]
                 validation_F1 += validation_metrics["f1"]

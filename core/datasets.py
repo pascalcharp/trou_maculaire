@@ -159,10 +159,6 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
                 tensor = self.transforms(rgb_image)
 
-            # Normalisation des 3 canaux
-
-            final_transformation = transforms.Compose([transforms.Normalize(normalisation_factors_means, normalisation_factors_std, inplace=True)])
-            final_transformation(tensor)
 
             return  tensor, label
 
@@ -193,15 +189,18 @@ class DLM_dataset(torch.utils.data.dataset.Dataset):
 
     def set_transforms(self, mode):
         if mode.upper() == "NONE":
-            transform_list = [transforms.ToTensor()]
+            transform_list = [transforms.Resize((224, 224)), transforms.ToTensor()]
 
         elif mode.upper() == "ALL":
             transform_list = [
+
+                transforms.Resize((224, 224)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ColorJitter(contrast=0.3, hue=0.3),
-                #transforms.RandomAffine(0, translate=(0.2, 0.05)),
-                transforms.Resize((224, 224)),
-                transforms.ToTensor()
+                transforms.ToTensor(),
+                transforms.Normalize(normalisation_factors_means, normalisation_factors_std),
+                transforms.RandomAffine(0, translate=(0.2, 0.05)),
+
             ]
 
         else:
