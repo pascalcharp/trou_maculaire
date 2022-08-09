@@ -121,8 +121,8 @@ class DLM_trainer:
 
         self.train_loader = DataLoader(self.training_dataset, batch_size=32, num_workers=6, shuffle=True)
         self.train_loader_without_transforms = DataLoader(self.training_dataset_without_transforms, batch_size=32, num_workers=6, shuffle=True)
-        self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6, shuffle=True)
-        self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6, shuffle=True)
+        self.validation_H_loader = DataLoader(self.validation_H_dataset, batch_size=21, num_workers=6)
+        self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6)
         self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=6, shuffle=True)
 
     def train(self, epochs=500):
