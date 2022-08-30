@@ -99,7 +99,6 @@ class sham_trainer:
 
 class DLM_trainer:
     def __init__(self, directory):
-        self.save_model_path = "saved_models/model"
 
         self.model = cmd.DLM_CBR_tiny()
         if torch.cuda.is_available():
@@ -125,7 +124,12 @@ class DLM_trainer:
         self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6)
         self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=6, shuffle=True)
 
-    def train(self, max_epochs=500):
+    def train(self, max_epochs=500, logging_interval=50):
+
+        if max_epochs < 1:
+            raise ValueError("DLM_trainer.train: max_epochs < 1")
+        if logging_interval < 1:
+            raise ValueError("DLM_trainer.train: logging_interval < 1")
 
         max_auroc = 0.0
         best_model = {}
@@ -150,7 +154,7 @@ class DLM_trainer:
 
             training_loss = training_loss / len(self.train_loader)
 
-            if epoch % 50 == 49:
+            if epoch % logging_interval == (logging_interval - 1):
                 validation_loss = 0.0
                 validation_auroc = 0.0
                 validation_F1 = 0.0
