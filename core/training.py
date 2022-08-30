@@ -125,12 +125,12 @@ class DLM_trainer:
         self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6)
         self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=6, shuffle=True)
 
-    def train(self, epochs=500):
+    def train(self, max_epochs=500):
 
         max_auroc = 0.0
         best_model = {}
 
-        for epoch in range(epochs):
+        for epoch in range(max_epochs):
 
             self.model.train()
             training_loss = 0.0
@@ -190,7 +190,8 @@ class DLM_trainer:
 
         print("Meilleur AUROC obtenu: ", max_auroc)
         print("Sauvegarde du modèle")
-        torch.save(best_model, self.save_model_path)
+
+        return best_model
 
     def perform_inference_on(self, dataloader):
 

@@ -30,7 +30,8 @@ def main(params):
 
     make_deterministic()
     trainer = ctr.DLM_trainer(params['data_directory'])
-    trainer.train(1000)
+    target_model = trainer.train(max_epochs=1000)
+    torch.save(target_model.state_dict(), "saved_model")
 
 
 
