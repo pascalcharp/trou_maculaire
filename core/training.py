@@ -124,7 +124,8 @@ class DLM_trainer:
         self.validation_V_loader = DataLoader(self.validation_V_dataset, batch_size=21, num_workers=6)
         self.test_loader = DataLoader(self.test_dataset, batch_size=34, num_workers=6, shuffle=True)
 
-    def train(self, max_epochs=500, logging_interval=50):
+    def train(self, max_epochs=500, logging_interval=50, logging_directory="Users/pascalcharpentier/PycharmProjects/trou_maculaire_regression_logistique/output/logs/",
+              output_directory="Users/pascalcharpentier/PycharmProjects/trou_maculaire_regression_logistique/output/"):
 
         if max_epochs < 1:
             raise ValueError("DLM_trainer.train: max_epochs < 1")
