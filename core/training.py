@@ -200,16 +200,24 @@ class DLM_trainer:
 
     def perform_inference_on(self, dataloader):
 
+        labels = np.array()
+        probabilities = np.array()
+        loss = 0.0
+
+
         for X, y in dataloader:
 
             if torch.cuda.is_available():
                 X, y = X.cuda(), y.cuda()
             logits = self.model(X)
             pred_probab = torch.sigmoid(logits)
-            loss = self.loss(pred_probab, y)
+            batch_loss = self.loss(pred_probab, y)
 
-            labels = y.cpu().numpy()
-            probabilities = pred_probab.cpu().numpy()
+            labels = np.concatenate(labels, y.cpu().numpy())
+            probabilities = np.concatenate(probabilities, pred_probab.cpu().numpy())
+            loss += batch_loss.item()
 
-            return loss.item(), labels, probabilities
+        loss /= len(dataloader)
+
+        return loss, labels, probabilities
 
